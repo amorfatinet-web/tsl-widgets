@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3D-Картография симптома · ТСЛ™</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Raleway:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A1020; --bg2:#0F1D3A; --bg3:#111827;
+  --gold:#B8975B; --gold2:#D4B777; --gold3:#E8D49A;
+  --teal:#4DC9A8; --coral:#D4705A; --text:#F5F2ED;
+  --dim:rgba(245,242,237,.45); --dim2:rgba(245,242,237,.22);
+  --border:rgba(184,151,91,.18); --border2:rgba(184,151,91,.35);
+  --blue:#2855CC; --blue-l:#7AB3F5;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'Raleway',sans-serif;min-height:100vh;display:flex;flex-direction:column}
+
+/* ШАПКА */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 28px;border-bottom:1px solid rgba(184,151,91,.1);background:rgba(10,16,32,.85);backdrop-filter:blur(8px);position:sticky;top:0;z-index:100}
+.logo-row{display:flex;align-items:center;gap:11px;text-decoration:none}
+.logo-img{width:36px;height:36px}
+.logo-tsl{font-size:17px;font-weight:700;letter-spacing:2px;color:var(--text);line-height:1}
+.logo-sub{font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:var(--gold);margin-top:3px;line-height:1}
+.channel-btn{display:flex;align-items:center;gap:7px;padding:10px 18px;border:1px solid var(--border2);border-radius:2px;font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--gold);text-decoration:none;transition:all .25s;white-space:nowrap}
+.channel-btn:hover{background:rgba(184,151,91,.1);border-color:var(--gold)}
+.channel-btn svg{width:14px;height:14px;flex-shrink:0}
+
+/* СЕРИЯ */
+.series-nav{max-width:680px;margin:0 auto;padding:22px 28px 0}
+.series-label{font-size:12px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--dim2);margin-bottom:12px;text-align:center}
+.series-steps{display:flex;align-items:center;justify-content:center}
+.step-dot{display:flex;flex-direction:column;align-items:center;gap:5px;flex:1;max-width:80px}
+.step-circle{width:32px;height:32px;border-radius:50%;border:1px solid rgba(184,151,91,.25);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:rgba(184,151,91,.3);transition:all .3s}
+.step-circle.done{border-color:rgba(184,151,91,.5);background:rgba(184,151,91,.08);color:rgba(184,151,91,.6)}
+.step-circle.current{border-color:var(--gold);background:rgba(184,151,91,.12);color:var(--gold);box-shadow:0 0 12px rgba(184,151,91,.2)}
+.step-name{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--dim2);text-align:center;line-height:1.3}
+.step-name.done{color:rgba(184,151,91,.5)}
+.step-name.current{color:var(--gold)}
+.step-line{flex:1;height:1px;max-width:24px;background:rgba(184,151,91,.12);margin-bottom:18px}
+
+/* ГЕРОЙ */
+.hero{padding:44px 28px 32px;text-align:center;background:radial-gradient(ellipse at 50% 0%,rgba(77,201,168,.1) 0%,transparent 60%);border-bottom:1px solid rgba(184,151,91,.08)}
+.hero-eyebrow{font-size:13px;font-weight:600;letter-spacing:4px;text-transform:uppercase;color:var(--teal);margin-bottom:14px;opacity:.8}
+.hero-title{font-family:'Cormorant Garamond',serif;font-size:48px;font-weight:300;line-height:1.15;color:var(--text);margin-bottom:8px}
+.hero-title em{font-style:italic;color:var(--gold2)}
+.hero-desc{font-size:18px;color:var(--dim);line-height:1.65;max-width:500px;margin:0 auto 20px}
+
+/* RECAP из В1 */
+.recap-bar{max-width:680px;margin:0 auto;padding:20px 28px 0}
+.recap-card{background:rgba(184,151,91,.05);border:1px solid rgba(184,151,91,.2);border-radius:4px;padding:14px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.recap-label{font-size:12px;letter-spacing:2.5px;text-transform:uppercase;color:var(--gold);opacity:.7;flex-shrink:0}
+.recap-symptom{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;color:var(--text);font-style:italic}
+.recap-level{font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;padding:3px 10px;border-radius:2px;flex-shrink:0}
+.recap-level-N{background:rgba(40,85,204,.15);color:var(--blue-l);border:1px solid rgba(70,130,220,.3)}
+.recap-level-C{background:rgba(184,151,91,.12);color:var(--gold2);border:1px solid rgba(184,151,91,.3)}
+.recap-level-P{background:rgba(255,255,255,.06);color:rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.2)}
+.recap-empty{display:none}
+
+/* ОСНОВНОЙ КОНТЕНТ */
+.main{max-width:680px;margin:0 auto;padding:28px 28px 0;flex:1}
+
+/* ИНСТРУКЦИЯ */
+.instruction{background:rgba(77,201,168,.05);border-left:2px solid rgba(77,201,168,.4);border-radius:0 4px 4px 0;padding:16px 20px;margin-bottom:28px;font-size:17px;color:var(--dim);line-height:1.7}
+.instruction strong{color:var(--teal);font-weight:600}
+
+/* СЕКЦИИ ОСЕЙ */
+.axis-section{margin-bottom:32px}
+.axis-header{display:flex;align-items:center;gap:12px;margin-bottom:18px;padding-bottom:10px;border-bottom:1px solid rgba(184,151,91,.1)}
+.axis-badge{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;flex-shrink:0}
+.axis-badge-X{background:rgba(196,168,115,.12);color:var(--gold);border:1px solid rgba(196,168,115,.3)}
+.axis-badge-Y{background:rgba(212,112,90,.1);color:#D4705A;border:1px solid rgba(212,112,90,.3)}
+.axis-badge-Z{background:rgba(77,201,168,.1);color:var(--teal);border:1px solid rgba(77,201,168,.3)}
+.axis-title{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:var(--text)}
+.axis-subtitle{font-size:15px;color:var(--dim2);margin-top:2px;letter-spacing:.5px}
+
+/* СЛАЙДЕРЫ */
+.sliders-grid{display:flex;flex-direction:column;gap:18px}
+.slider-item{display:grid;grid-template-columns:130px 1fr 44px;align-items:center;gap:14px}
+.slider-name{font-size:16px;color:var(--dim);line-height:1.3}
+.slider-name span{display:block;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--dim2);margin-top:2px}
+.slider-track{position:relative;display:flex;align-items:center}
+input[type=range]{-webkit-appearance:none;width:100%;height:6px;border-radius:2px;outline:none;cursor:pointer;transition:all .2s}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;cursor:pointer;transition:all .2s;border:2px solid var(--bg)}input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;cursor:pointer;border:2px solid var(--bg);box-shadow:none}
+.slider-X input[type=range]{background:linear-gradient(90deg,rgba(196,168,115,.5) var(--pct,50%),rgba(196,168,115,.1) var(--pct,50%))}
+.slider-X input[type=range]::-webkit-slider-thumb{background:var(--gold);box-shadow:0 0 8px rgba(184,151,91,.4)}
+.slider-Y input[type=range]{background:linear-gradient(90deg,rgba(212,112,90,.6) var(--pct,50%),rgba(212,112,90,.12) var(--pct,50%))}
+.slider-Y input[type=range]::-webkit-slider-thumb{background:#D4705A;box-shadow:0 0 8px rgba(212,112,90,.4)}
+.slider-Z input[type=range]{background:linear-gradient(90deg,rgba(77,201,168,.6) var(--pct,50%),rgba(77,201,168,.12) var(--pct,50%))}
+.slider-Z input[type=range]::-webkit-slider-thumb{background:var(--teal);box-shadow:0 0 8px rgba(77,201,168,.4)}
+.slider-val{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:600;color:var(--text);text-align:right;min-width:30px;line-height:1}
+
+/* ЗОНА-ТЕГИ */
+.zone-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.zone-tag{font-size:13px;letter-spacing:1px;text-transform:uppercase;padding:3px 10px;border-radius:2px;transition:all .3s;opacity:0;transform:translateY(4px)}
+.zone-tag.pressure{background:rgba(194,24,91,.15);color:rgba(248,187,217,.8);border:1px solid rgba(194,24,91,.3);opacity:1;transform:none}
+.zone-tag.resource{background:rgba(40,85,204,.12);color:var(--blue-l);border:1px solid rgba(70,130,220,.25);opacity:1;transform:none}
+
+/* ЖИВОЙ ТРЕУГОЛЬНИК */
+.triangle-section{margin-bottom:32px}
+.triangle-header{font-size:13px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--dim2);margin-bottom:14px}
+.triangle-wrap{background:rgba(17,24,39,.6);border:1px solid rgba(184,151,91,.1);border-radius:6px;overflow:hidden}
+#triangleSVG{width:100%;display:block}
+
+/* ВЫВОД — зоны */
+.zones-result{background:rgba(17,24,39,.7);border:1px solid rgba(184,151,91,.12);border-radius:4px;padding:20px;margin-bottom:28px}
+.zones-title{font-size:13px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--dim2);margin-bottom:14px}
+.zone-row{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px}
+.zone-row:last-child{margin-bottom:0}
+.zone-indicator{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.zone-indicator-pressure{background:rgba(194,24,91,.7);box-shadow:0 0 6px rgba(194,24,91,.4)}
+.zone-indicator-resource{background:rgba(40,85,204,.7);box-shadow:0 0 6px rgba(40,85,204,.4)}
+.zone-row-text{font-size:17px;line-height:1.65;color:var(--dim)}
+.zone-row-text strong{color:var(--text);font-weight:600}
+#insight-text{font-size:17px;color:var(--dim);line-height:1.85;border-left:2px solid var(--gold);padding-left:16px;margin-top:18px;white-space:pre-line}
+
+/* КНОПКИ */
+.btns-section{margin-bottom:32px}
+.btn-next{display:block;padding:18px 24px;background:rgba(77,201,168,.1);border:1px solid rgba(77,201,168,.35);border-radius:2px;font-size:14px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--teal);text-align:center;cursor:pointer;transition:all .25s;margin-bottom:10px;text-decoration:none;width:100%}
+.btn-next:hover{background:rgba(77,201,168,.18);border-color:rgba(77,201,168,.55)}
+.btn-primary{display:block;padding:16px 24px;background:var(--gold);color:#0A1020;font-size:14px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;text-decoration:none;text-align:center;border-radius:2px;transition:all .25s;margin-bottom:10px}
+.btn-primary:hover{background:var(--gold3)}
+.btn-channel{display:block;padding:14px 24px;background:transparent;border:1px solid var(--border);border-radius:2px;font-size:13px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--gold);text-decoration:none;text-align:center;transition:all .25s;margin-bottom:10px}
+.btn-channel:hover{border-color:var(--gold);background:rgba(184,151,91,.07)}
+.saved-notice{display:none;font-size:14px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(77,201,168,.7);text-align:center;padding:8px;margin-bottom:8px}
+.saved-notice.show{display:block;animation:fadeUp .4s}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* УЧЕБНЫЙ РАЗДЕЛ */
+.edu-section{margin-bottom:36px}
+.edu-toggle{width:100%;background:rgba(184,151,91,.05);border:1px solid rgba(184,151,91,.15);border-radius:4px;padding:16px 20px;font-size:14px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--dim2);cursor:pointer;text-align:left;display:flex;justify-content:space-between;align-items:center;transition:all .25s}
+.edu-toggle:hover{border-color:rgba(184,151,91,.3);color:var(--gold)}
+.edu-toggle .arrow{transition:transform .3s;font-size:14px}
+.edu-toggle.open .arrow{transform:rotate(180deg)}
+.edu-body{display:none;padding:24px 0 8px}
+.edu-body.open{display:block}
+.edu-keis-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:20px}
+@media(max-width:600px){.edu-keis-grid{grid-template-columns:1fr}}
+.keis-card{background:rgba(17,24,39,.8);border:1px solid rgba(196,168,115,.12);border-radius:6px;overflow:hidden}
+.keis-card-label{font-size:8px;letter-spacing:2px;text-transform:uppercase;padding:8px 12px 6px;color:rgba(196,168,115,.4);border-bottom:1px solid rgba(196,168,115,.08)}
+.edu-svg{width:100%;display:block}
+.edu-note{font-size:16px;font-style:italic;color:var(--dim2);text-align:center;padding:8px 0 16px;line-height:1.6}
+
+/* ФУТЕР */
+.footer{margin-top:auto;padding:24px 28px;border-top:1px solid rgba(184,151,91,.08);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.footer-brand{display:flex;align-items:center;gap:8px}
+.footer-brand img{width:22px;height:22px}
+.footer-brand-text{font-size:13px;letter-spacing:2px;text-transform:uppercase;color:var(--dim2)}
+.footer-links{display:flex;gap:18px;flex-wrap:wrap}
+.footer-link{font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--dim2);text-decoration:none;transition:color .2s}
+.footer-link:hover{color:var(--gold)}
+
+@media(max-width:520px){
+  .topbar{padding:14px 18px}
+  .channel-btn span{display:none}
+  .hero{padding:32px 18px 24px}
+  .hero-title{font-size:36px}
+  .main,.recap-bar,.series-nav{padding-left:18px;padding-right:18px}
+  .slider-item{grid-template-columns:100px 1fr 36px;gap:10px}
+  .slider-name{font-size:15px}
+  .slider-val{font-size:28px}
+  .edu-keis-grid{grid-template-columns:1fr}
+  .footer{padding:18px}
+}
+</style>
+</head>
+<body>
+
+<!-- ШАПКА -->
+<div class="topbar">
+  <a href="http://architecture-legacy.ru/" target="_blank" class="logo-row">
+    <img class="logo-img" src="data:image/png;base64,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" alt="ТСЛ">
+    <div>
+      <div class="logo-tsl">ТСЛ™</div>
+      <div class="logo-sub">Теория Системной Легитимности</div>
+    </div>
+  </a>
+  <a href="https://t.me/TSL_method" target="_blank" class="channel-btn">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8l-1.68 7.92c-.12.56-.44.7-.9.44l-2.48-1.83-1.2 1.15c-.13.13-.24.24-.5.24l.18-2.52 4.56-4.12c.2-.18-.04-.28-.3-.1L7.14 14.4l-2.44-.76c-.53-.17-.54-.53.11-.78l9.56-3.68c.44-.17.83.1.69.62z"/></svg>
+    <span>Канал ТСЛ™</span>
+  </a>
+</div>
+
+<!-- СЕРИЯ -->
+<div class="series-nav">
+  <div class="series-label">Серия виджетов УПЧ</div>
+  <div class="series-steps">
+    <div class="step-dot"><div class="step-circle done">1</div><div class="step-name done">Компас</div></div>
+    <div class="step-line"></div>
+    <div class="step-dot"><div class="step-circle current">2</div><div class="step-name current">3D-карта</div></div>
+    <div class="step-line"></div>
+    <div class="step-dot"><div class="step-circle">3</div><div class="step-name">Квадри­латерация</div></div>
+    <div class="step-line"></div>
+    <div class="step-dot"><div class="step-circle">4</div><div class="step-name">Индика­торы</div></div>
+    <div class="step-line"></div>
+    <div class="step-dot"><div class="step-circle">5</div><div class="step-name">Формула</div></div>
+    <div class="step-line"></div>
+    <div class="step-dot"><div class="step-circle">R</div><div class="step-name">Отчёт</div></div>
+  </div>
+</div>
+
+<!-- ГЕРОЙ -->
+<div class="hero">
+  <div class="hero-eyebrow">Виджет 2 · Картография симптома</div>
+  <div class="hero-title">3D-<em>Картография</em></div>
+  <div class="hero-desc">Девять координат — точная карта вашего симптома по трём осям. Зона давления и зона ресурса.</div>
+</div>
+
+<!-- RECAP из В1 -->
+<div class="recap-bar">
+  <div class="recap-card" id="recapCard" style="display:none">
+    <div class="recap-label">Симптом из компаса</div>
+    <div class="recap-symptom" id="recapSymptom">—</div>
+    <div class="recap-level" id="recapLevel"></div>
+  </div>
+</div>
+
+<!-- ОСНОВНОЙ КОНТЕНТ -->
+<div class="main">
+  <div class="instruction">
+    <strong>Как работать:</strong> оцените ваш симптом по каждой шкале от 0 до 10. <strong>8–10</strong> = зона давления, <strong>0–4</strong> = зона ресурса. Треугольник перестраивается в реальном времени.
+  </div>
+
+  <!-- ОСЬ X -->
+  <div class="axis-section">
+    <div class="axis-header">
+      <div class="axis-badge axis-badge-X">X</div>
+      <div>
+        <div class="axis-title">Глубина — уровни системы</div>
+        <div class="axis-subtitle">Где симптом «живёт» по вертикали метода ТСЛ</div>
+      </div>
+    </div>
+    <div class="sliders-grid">
+      <div class="slider-item slider-X">
+        <div class="slider-name">N — Тело / Факты<span>Уровень необходимости</span></div>
+        <div class="slider-track"><input type="range" id="sl-N" min="0" max="10" value="5" oninput="update()"></div>
+        <div class="slider-val" id="v-N">5</div>
+      </div>
+      <div class="slider-item slider-X">
+        <div class="slider-name">C — Образы / Паттерны<span>Уровень свободы</span></div>
+        <div class="slider-track"><input type="range" id="sl-C" min="0" max="10" value="5" oninput="update()"></div>
+        <div class="slider-val" id="v-C">5</div>
+      </div>
+      <div class="slider-item slider-X">
+        <div class="slider-name">P — Смысл / Право быть<span>Уровень первоисточника</span></div>
+        <div class="slider-track"><input type="range" id="sl-P" min="0" max="10" value="5" oninput="update()"></div>
+        <div class="slider-val" id="v-P">5</div>
+      </div>
+    </div>
+    <div class="zone-tags" id="tags-X"></div>
+  </div>
+
+  <!-- ОСЬ Y -->
+  <div class="axis-section">
+    <div class="axis-header">
+      <div class="axis-badge axis-badge-Y">Y</div>
+      <div>
+        <div class="axis-title">Ширина — масштаб системы</div>
+        <div class="axis-subtitle">Кого затрагивает симптом — меня, отношения или род</div>
+      </div>
+    </div>
+    <div class="sliders-grid">
+      <div class="slider-item slider-Y">
+        <div class="slider-name">Я — Личная история<span>Личный опыт</span></div>
+        <div class="slider-track"><input type="range" id="sl-self" min="0" max="10" value="5" oninput="update()"></div>
+        <div class="slider-val" id="v-self">5</div>
+      </div>
+      <div class="slider-item slider-Y">
+        <div class="slider-name">Отношения — Контакт<span>Связи с людьми</span></div>
+        <div class="slider-track"><input type="range" id="sl-rel" min="0" max="10" value="5" oninput="update()"></div>
+        <div class="slider-val" id="v-rel">5</div>
+      </div>
+      <div class="slider-item slider-Y">
+        <div class="slider-name">Род — Семейный след<span>Родовые паттерны</span></div>
+        <div class="slider-track"><input type="range" id="sl-fam" min="0" max="10" value="5" oninput="update()"></div>
+        <div class="slider-val" id="v-fam">5</div>
+      </div>
+    </div>
+    <div class="zone-tags" id="tags-Y"></div>
+  </div>
+
+  <!-- ОСЬ Z -->
+  <div class="axis-section">
+    <div class="axis-header">
+      <div class="axis-badge axis-badge-Z">Z</div>
+      <div>
+        <div class="axis-title">Время — глубина корней</div>
+        <div class="axis-subtitle">Когда возникло и насколько далеко уходит в прошлое</div>
+      </div>
+    </div>
+    <div class="sliders-grid">
+      <div class="slider-item slider-Z">
+        <div class="slider-name">Прошлое — Корни<span>Глубина истории</span></div>
+        <div class="slider-track"><input type="range" id="sl-past" min="0" max="10" value="5" oninput="update()"></div>
+        <div class="slider-val" id="v-past">5</div>
+      </div>
+      <div class="slider-item slider-Z">
+        <div class="slider-name">Настоящее — Давление<span>Актуальность сейчас</span></div>
+        <div class="slider-track"><input type="range" id="sl-pres" min="0" max="10" value="5" oninput="update()"></div>
+        <div class="slider-val" id="v-pres">5</div>
+      </div>
+      <div class="slider-item slider-Z">
+        <div class="slider-name">Будущее — Прогноз<span>Пластичность системы</span></div>
+        <div class="slider-track"><input type="range" id="sl-fut" min="0" max="10" value="5" oninput="update()"></div>
+        <div class="slider-val" id="v-fut">5</div>
+      </div>
+    </div>
+    <div class="zone-tags" id="tags-Z"></div>
+  </div>
+
+  <!-- ЖИВОЙ ТРЕУГОЛЬНИК -->
+  <div class="triangle-section">
+    <div class="triangle-header">Треугольник вашего симптома · обновляется в реальном времени</div>
+    <div class="triangle-wrap">
+      <svg id="triangleSVG" viewBox="0 0 520 340" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="bgT" cx="40%" cy="50%" r="65%">
+            <stop offset="0%" stop-color="#18243A"/>
+            <stop offset="100%" stop-color="#0D1520"/>
+          </radialGradient>
+        </defs>
+        <rect width="520" height="340" fill="url(#bgT)"/>
+        <text x="260" y="18" text-anchor="middle" font-family="Raleway,sans-serif" font-size="7" font-weight="500" letter-spacing="2" fill="rgba(196,168,115,.35)">ТРЕУГОЛЬНИК СИМПТОМА · ТСЛ™</text>
+        <line x1="20" y1="26" x2="500" y2="26" stroke="#C4A873" stroke-width=".3" stroke-opacity=".2"/>
+
+        <!-- Оси (статичные) -->
+        <!-- Z вертикаль -->
+        <line x1="200" y1="220" x2="200" y2="55" stroke="#4DC9A8" stroke-width="1.2" stroke-opacity=".25" stroke-dasharray="3 4"/>
+        <line x1="200" y1="220" x2="200" y2="300" stroke="#4DC9A8" stroke-width="1.2" stroke-opacity=".2" stroke-dasharray="3 4"/>
+        <polygon points="200,50 195,64 205,64" fill="#4DC9A8" fill-opacity=".4"/>
+        <!-- Z labels -->
+        <text x="188" y="59" text-anchor="end" font-family="Cormorant Garamond,serif" font-size="9" fill="rgba(77,201,168,.6)">Будущее</text>
+        <text x="188" y="159" text-anchor="end" font-family="Cormorant Garamond,serif" font-size="9" fill="rgba(77,201,168,.5)">Настоящее</text>
+        <text x="188" y="299" text-anchor="end" font-family="Cormorant Garamond,serif" font-size="9" fill="rgba(77,201,168,.5)">Прошлое</text>
+        <!-- Z box -->
+        <rect x="88" y="110" width="68" height="24" rx="3" fill="rgba(77,201,168,.06)" stroke="rgba(77,201,168,.2)" stroke-width=".6"/>
+        <text x="122" y="121" text-anchor="middle" font-family="Raleway,sans-serif" font-size="8" font-weight="600" fill="#4DC9A8">Z · Время</text>
+        <text x="122" y="130" text-anchor="middle" font-family="Cormorant Garamond,serif" font-size="7.5" font-style="italic" fill="rgba(77,201,168,.4)">Прош ↓ · ↑ Буд</text>
+        <!-- Y горизонталь -->
+        <line x1="200" y1="220" x2="65" y2="220" stroke="#D4705A" stroke-width="1.2" stroke-opacity=".25" stroke-dasharray="3 4"/>
+        <line x1="200" y1="220" x2="345" y2="220" stroke="#D4705A" stroke-width="1.2" stroke-opacity=".25" stroke-dasharray="3 4"/>
+        <polygon points="60,220 74,215 74,225" fill="#D4705A" fill-opacity=".4"/>
+        <polygon points="350,220 336,215 336,225" fill="#D4705A" fill-opacity=".4"/>
+        <!-- Y labels -->
+        <text x="110" y="238" text-anchor="middle" font-family="Cormorant Garamond,serif" font-size="9" fill="rgba(212,112,90,.55)">Отн</text>
+        <text x="187" y="213" text-anchor="end" font-family="Cormorant Garamond,serif" font-size="10" font-weight="600" fill="rgba(212,112,90,.8)">Я</text>
+        <text x="275" y="238" text-anchor="middle" font-family="Cormorant Garamond,serif" font-size="9" fill="rgba(212,112,90,.55)">Род</text>
+        <!-- Y box -->
+        <rect x="28" y="248" width="68" height="24" rx="3" fill="rgba(212,112,90,.06)" stroke="rgba(212,112,90,.2)" stroke-width=".6"/>
+        <text x="62" y="259" text-anchor="middle" font-family="Raleway,sans-serif" font-size="8" font-weight="600" fill="#D4705A">Y · Ширина</text>
+        <text x="62" y="268" text-anchor="middle" font-family="Cormorant Garamond,serif" font-size="7.5" font-style="italic" fill="rgba(212,112,90,.4)">Отн ← Я → Род</text>
+        <!-- X диагональ -->
+        <line x1="200" y1="220" x2="328" y2="132" stroke="#C4A873" stroke-width="1.2" stroke-opacity=".25" stroke-dasharray="3 4"/>
+        <polygon points="332,128 320,133 323,144" fill="#C4A873" fill-opacity=".4"/>
+        <!-- X labels -->
+        <text x="215" y="208" font-family="Raleway,sans-serif" font-size="9" font-weight="600" fill="rgba(196,168,115,.6)">N</text>
+        <text x="267" y="170" font-family="Raleway,sans-serif" font-size="9" font-weight="600" fill="rgba(196,168,115,.6)">C</text>
+        <text x="336" y="128" font-family="Raleway,sans-serif" font-size="9" font-weight="600" fill="rgba(196,168,115,.6)">P</text>
+        <!-- X box -->
+        <rect x="340" y="108" width="72" height="24" rx="3" fill="rgba(196,168,115,.07)" stroke="rgba(196,168,115,.22)" stroke-width=".6"/>
+        <text x="376" y="119" text-anchor="middle" font-family="Raleway,sans-serif" font-size="8" font-weight="600" fill="#C4A873">X · Глубина</text>
+        <text x="376" y="128" text-anchor="middle" font-family="Cormorant Garamond,serif" font-size="7.5" font-style="italic" fill="rgba(196,168,115,.4)">N → C → P</text>
+        <!-- Origin -->
+        <circle cx="200" cy="220" r="4" fill="rgba(196,168,115,.12)" stroke="#C4A873" stroke-width="1" stroke-opacity=".45"/>
+        <circle cx="200" cy="220" r="1.8" fill="#C4A873" fill-opacity=".5"/>
+
+        <!-- ДИНАМИЧЕСКИЕ элементы -->
+        <!-- Треугольник (polygon обновляется из JS) -->
+        <polygon id="triPoly" points="200,220 200,220 200,220"
+          fill="rgba(196,168,115,.08)" stroke="rgba(196,168,115,.55)"
+          stroke-width="1.4" stroke-dasharray="5 4"/>
+        <!-- Точки треугольника -->
+        <circle id="ptX" cx="200" cy="220" r="5" fill="#C4A873" fill-opacity=".55" stroke="#C4A873" stroke-width="1"/>
+        <circle id="ptY" cx="200" cy="220" r="5" fill="#D4705A" fill-opacity=".55" stroke="#D4705A" stroke-width="1"/>
+        <circle id="ptZ" cx="200" cy="220" r="5" fill="#4DC9A8" fill-opacity=".55" stroke="#4DC9A8" stroke-width="1"/>
+        <!-- Лучи от центра -->
+        <line id="rayX" x1="200" y1="220" x2="200" y2="220" stroke="#C4A873" stroke-width="2.5" stroke-linecap="round" stroke-opacity=".4"/>
+        <line id="rayY" x1="200" y1="220" x2="200" y2="220" stroke="#D4705A" stroke-width="2.5" stroke-linecap="round" stroke-opacity=".4"/>
+        <line id="rayZ" x1="200" y1="220" x2="200" y2="220" stroke="#4DC9A8" stroke-width="3" stroke-linecap="round" stroke-opacity=".45"/>
+        <!-- Метки значений -->
+        <text id="lblX" x="200" y="220" font-family="Raleway,sans-serif" font-size="9" font-weight="700" fill="#C4A873"></text>
+        <text id="lblY" x="200" y="220" font-family="Raleway,sans-serif" font-size="9" font-weight="700" fill="#D4705A"></text>
+        <text id="lblZ" x="200" y="220" font-family="Raleway,sans-serif" font-size="9" font-weight="700" fill="#4DC9A8"></text>
+        <!-- Описание фигуры (динамическое) -->
+        <text id="triDesc" x="420" y="200" text-anchor="middle" font-family="Cormorant Garamond,serif" font-size="9" font-style="italic" fill="rgba(245,242,237,.35)" opacity="0"></text>
+
+        <line x1="20" y1="322" x2="500" y2="322" stroke="#C4A873" stroke-width=".3" stroke-opacity=".15"/>
+        <text x="260" y="334" text-anchor="middle" font-family="Raleway,sans-serif" font-size="6" letter-spacing="1.5" fill="rgba(196,168,115,.2)">© МАРИНА ПОНАМАРЕВА · ТСЛ™ · 2026</text>
+      </svg>
+    </div>
+  </div>
+
+  <!-- ВЫВОД ЗОН -->
+  <div class="zones-result">
+    <div class="zones-title">Диагностический вывод</div>
+    <div class="zone-row">
+      <div class="zone-indicator zone-indicator-pressure"></div>
+      <div class="zone-row-text"><strong>Зона давления:</strong> <span id="pressure-text">выставьте оценки для определения</span></div>
+    </div>
+    <div class="zone-row">
+      <div class="zone-indicator zone-indicator-resource"></div>
+      <div class="zone-row-text"><strong>Зона ресурса:</strong> <span id="resource-text">выставьте оценки для определения</span></div>
+    </div>
+    <div class="reading-label" id="readingLabel" style="display:none;font-size:11px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-top:18px;margin-bottom:8px;opacity:.7">Чтение карты</div><div id="readingLabel" style="display:none;font-size:13px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--gold);opacity:.8;margin-top:20px;margin-bottom:10px">Чтение карты</div><div id="insight-text" style="white-space:pre-line"></div>
+  </div>
+
+  <!-- СОХРАНИТЬ И ПЕРЕЙТИ -->
+  <div class="btns-section">
+    <div class="saved-notice" id="savedNotice">✓ Карта сохранена · Готово к Квадрилатерации</div>
+    <button class="btn-next" onclick="saveAndNext()">→ Следующий шаг: Квадрилатерация</button>
+    <a href="https://t.me/TSL_konsult_bot" target="_blank" class="btn-primary">Записаться на консультацию</a>
+    <a href="https://t.me/TSL_method" target="_blank" class="btn-channel">Канал ТСЛ™ · @TSL_method</a>
+  </div>
+
+  <!-- УЧЕБНЫЙ РАЗДЕЛ -->
+  <div class="edu-section">
+    <button class="edu-toggle" onclick="toggleEdu(this)">
+      <span>Как читать треугольник · кейсы из практики ТСЛ™</span>
+      <span class="arrow">▼</span>
+    </button>
+    <div class="edu-body" id="eduBody">
+      <div class="edu-keis-grid">
+        <!-- Михаил -->
+        <div class="keis-card">
+          <div class="keis-card-label">Михаил · Паника N=8 Я=8 Пр=9</div>
+          <svg class="edu-svg" viewBox="0 0 170 170" xmlns="http://www.w3.org/2000/svg">
+            <rect width="170" height="170" fill="#0D1520"/>
+            <line x1="85" y1="90" x2="85" y2="30" stroke="#4DC9A8" stroke-width=".8" stroke-opacity=".3" stroke-dasharray="3 3"/>
+            <line x1="85" y1="90" x2="85" y2="145" stroke="#4DC9A8" stroke-width=".8" stroke-opacity=".25" stroke-dasharray="3 3"/>
+            <line x1="85" y1="90" x2="25" y2="90" stroke="#D4705A" stroke-width=".8" stroke-opacity=".25" stroke-dasharray="3 3"/>
+            <line x1="85" y1="90" x2="150" y2="90" stroke="#D4705A" stroke-width=".8" stroke-opacity=".25" stroke-dasharray="3 3"/>
+            <line x1="85" y1="90" x2="140" y2="52" stroke="#C4A873" stroke-width=".8" stroke-opacity=".25" stroke-dasharray="3 3"/>
+            <circle cx="85" cy="90" r="2.5" fill="rgba(196,168,115,.2)" stroke="#C4A873" stroke-width=".6" stroke-opacity=".4"/>
+            <line x1="85" y1="90" x2="108" y2="74" stroke="#C4A873" stroke-width="2.2" stroke-linecap="round" stroke-opacity=".45"/>
+            <line x1="85" y1="90" x2="45" y2="90" stroke="#D4705A" stroke-width="2.2" stroke-linecap="round" stroke-opacity=".4"/>
+            <line x1="85" y1="90" x2="85" y2="138" stroke="#4DC9A8" stroke-width="2.8" stroke-linecap="round" stroke-opacity=".5"/>
+            <polygon points="108,74 45,90 85,138" fill="rgba(196,168,115,.08)" stroke="rgba(196,168,115,.45)" stroke-width="1.2" stroke-dasharray="3 3"/>
+            <circle cx="108" cy="74" r="4" fill="#C4A873" fill-opacity=".45" stroke="#C4A873" stroke-width=".8"/>
+            <circle cx="45" cy="90" r="4" fill="#D4705A" fill-opacity=".4" stroke="#D4705A" stroke-width=".8"/>
+            <circle cx="85" cy="138" r="4.5" fill="#4DC9A8" fill-opacity=".5" stroke="#4DC9A8" stroke-width=".8"/>
+            <text x="85" y="158" text-anchor="middle" font-family="Cormorant Garamond,serif" font-size="8" font-style="italic" fill="rgba(245,242,237,.35)">Вытянут вниз — прошлое</text>
+          </svg>
+        </div>
+        <!-- Аня -->
+        <div class="keis-card">
+          <div class="keis-card-label">Аня · Тень N=9 C=3 P=1</div>
+          <svg class="edu-svg" viewBox="0 0 170 170" xmlns="http://www.w3.org/2000/svg">
+            <rect width="170" height="170" fill="#0D1520"/>
+            <line x1="85" y1="90" x2="85" y2="30" stroke="#4DC9A8" stroke-width=".8" stroke-opacity=".25" stroke-dasharray="3 3"/>
+            <line x1="85" y1="90" x2="85" y2="145" stroke="#4DC9A8" stroke-width=".8" stroke-opacity=".2" stroke-dasharray="3 3"/>
+            <line x1="85" y1="90" x2="25" y2="90" stroke="#D4705A" stroke-width=".8" stroke-opacity=".25" stroke-dasharray="3 3"/>
+            <line x1="85" y1="90" x2="150" y2="90" stroke="#D4705A" stroke-width=".8" stroke-opacity=".2" stroke-dasharray="3 3"/>
+            <line x1="85" y1="90" x2="140" y2="52" stroke="#C4A873" stroke-width=".8" stroke-opacity=".25" stroke-dasharray="3 3"/>
+            <circle cx="85" cy="90" r="2.5" fill="rgba(196,168,115,.2)" stroke="#C4A873" stroke-width=".6" stroke-opacity=".4"/>
+            <line x1="85" y1="90" x2="92" y2="84" stroke="#C4A873" stroke-width="1.8" stroke-linecap="round" stroke-opacity=".4"/>
+            <line x1="85" y1="90" x2="45" y2="90" stroke="#D4705A" stroke-width="2.5" stroke-linecap="round" stroke-opacity=".42"/>
+            <line x1="85" y1="90" x2="85" y2="128" stroke="#4DC9A8" stroke-width="2.5" stroke-linecap="round" stroke-opacity=".42"/>
+            <polygon points="92,84 45,90 85,128" fill="rgba(212,112,90,.07)" stroke="rgba(212,112,90,.4)" stroke-width="1.2" stroke-dasharray="3 3"/>
+            <circle cx="92" cy="84" r="2.5" fill="#C4A873" fill-opacity=".4" stroke="#C4A873" stroke-width=".8"/>
+            <circle cx="45" cy="90" r="4" fill="#D4705A" fill-opacity=".4" stroke="#D4705A" stroke-width=".8"/>
+            <circle cx="85" cy="128" r="4" fill="#4DC9A8" fill-opacity=".42" stroke="#4DC9A8" stroke-width=".8"/>
+            <text x="85" y="158" text-anchor="middle" font-family="Cormorant Garamond,serif" font-size="8" font-style="italic" fill="rgba(245,242,237,.35)">Сжатый — давление на N</text>
+          </svg>
+        </div>
+        <!-- Круг целостности -->
+        <div class="keis-card">
+          <div class="keis-card-label">Круг целостности Я=9 Род=8 Пр=8</div>
+          <svg class="edu-svg" viewBox="0 0 170 170" xmlns="http://www.w3.org/2000/svg">
+            <rect width="170" height="170" fill="#0D1520"/>
+            <line x1="85" y1="90" x2="85" y2="30" stroke="#4DC9A8" stroke-width=".8" stroke-opacity=".25" stroke-dasharray="3 3"/>
+            <line x1="85" y1="90" x2="85" y2="145" stroke="#4DC9A8" stroke-width=".8" stroke-opacity=".2" stroke-dasharray="3 3"/>
+            <line x1="85" y1="90" x2="25" y2="90" stroke="#D4705A" stroke-width=".8" stroke-opacity=".25" stroke-dasharray="3 3"/>
+            <line x1="85" y1="90" x2="150" y2="90" stroke="#D4705A" stroke-width=".8" stroke-opacity=".25" stroke-dasharray="3 3"/>
+            <line x1="85" y1="90" x2="140" y2="52" stroke="#C4A873" stroke-width=".8" stroke-opacity=".2" stroke-dasharray="3 3"/>
+            <circle cx="85" cy="90" r="2.5" fill="rgba(196,168,115,.2)" stroke="#C4A873" stroke-width=".6" stroke-opacity=".4"/>
+            <line x1="85" y1="90" x2="97" y2="82" stroke="#C4A873" stroke-width="2" stroke-linecap="round" stroke-opacity=".38"/>
+            <line x1="85" y1="90" x2="135" y2="90" stroke="#D4705A" stroke-width="3" stroke-linecap="round" stroke-opacity=".45"/>
+            <line x1="85" y1="90" x2="85" y2="134" stroke="#4DC9A8" stroke-width="2.5" stroke-linecap="round" stroke-opacity=".42"/>
+            <polygon points="97,82 135,90 85,134" fill="rgba(13,158,128,.07)" stroke="rgba(13,158,128,.38)" stroke-width="1.2" stroke-dasharray="3 3"/>
+            <circle cx="97" cy="82" r="3" fill="#C4A873" fill-opacity=".35" stroke="#C4A873" stroke-width=".8"/>
+            <circle cx="135" cy="90" r="4.5" fill="#D4705A" fill-opacity=".42" stroke="#D4705A" stroke-width=".8"/>
+            <circle cx="85" cy="134" r="4" fill="#4DC9A8" fill-opacity=".4" stroke="#4DC9A8" stroke-width=".8"/>
+            <text x="85" y="158" text-anchor="middle" font-family="Cormorant Garamond,serif" font-size="8" font-style="italic" fill="rgba(245,242,237,.35)">Развёрнут вправо — род</text>
+          </svg>
+        </div>
+      </div>
+      <div class="edu-note">Форма треугольника — образ симптома, не диагноз. У каждой системы — свой рисунок.</div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<!-- ФУТЕР -->
+<div class="footer">
+  <div class="footer-brand">
+    <img src="data:image/png;base64,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" alt="ТСЛ">
+    <div class="footer-brand-text">ТСЛ™ · Марина Понамарева</div>
+  </div>
+  <div class="footer-links">
+    <a href="https://t.me/TSL_method" target="_blank" class="footer-link">@TSL_method</a>
+    <a href="https://t.me/TSL_konsult_bot" target="_blank" class="footer-link">@TSL_konsult_bot</a>
+    <a href="http://architecture-legacy.ru/" target="_blank" class="footer-link">Сайт</div>
+  </div>
+</div>
+
+
+<script>
+// ─── КОНСТАНТЫ ───
+var OX=200, OY=220;
+var AX_X_LEN=110, AX_Y_LEN=115, AX_Z_LEN=115;
+
+function axisX(v){ var r=(-55)*Math.PI/180, l=(v/10)*AX_X_LEN; return {x:OX+Math.cos(r)*l, y:OY+Math.sin(r)*l}; }
+function axisY(v){ return {x:OX-(v/10)*AX_Y_LEN, y:OY}; }
+function axisZ(v){ return {x:OX, y:OY+(v/10)*AX_Z_LEN}; }
+
+function getSliders(){
+  return {
+    N:    +document.getElementById('sl-N').value,
+    C:    +document.getElementById('sl-C').value,
+    P:    +document.getElementById('sl-P').value,
+    self: +document.getElementById('sl-self').value,
+    rel:  +document.getElementById('sl-rel').value,
+    fam:  +document.getElementById('sl-fam').value,
+    past: +document.getElementById('sl-past').value,
+    pres: +document.getElementById('sl-pres').value,
+    fut:  +document.getElementById('sl-fut').value
+  };
+}
+
+function setVal(id, v){
+  var el = document.getElementById('v-'+id);
+  if(el) el.textContent = v;
+  var sl = document.getElementById('sl-'+id);
+  if(!sl) return;
+  var pct = (v/10*100)+'%';
+  var cls = sl.closest('.slider-item').className;
+  var c  = cls.indexOf('slider-X')>=0 ? 'rgba(196,168,115,.55)':
+           cls.indexOf('slider-Y')>=0 ? 'rgba(212,112,90,.65)' :'rgba(77,201,168,.65)';
+  var cL = cls.indexOf('slider-X')>=0 ? 'rgba(196,168,115,.1)' :
+           cls.indexOf('slider-Y')>=0 ? 'rgba(212,112,90,.1)'  :'rgba(77,201,168,.1)';
+  sl.style.background = 'linear-gradient(90deg,'+c+' '+pct+','+cL+' '+pct+')';
+}
+
+function updateTags(axisId, vals, names){
+  var el = document.getElementById('tags-'+axisId);
+  if(!el) return;
+  el.innerHTML = '';
+  vals.forEach(function(v,i){
+    if(v>=7){
+      var t=document.createElement('span');
+      t.className='zone-tag pressure';
+      t.textContent='\u25b2 '+names[i]+' = '+v+' \u00b7 давление';
+      el.appendChild(t);
+    } else if(v<=4){
+      var t=document.createElement('span');
+      t.className='zone-tag resource';
+      t.textContent='\u25c6 '+names[i]+' = '+v+' \u00b7 ресурс';
+      el.appendChild(t);
+    }
+  });
+}
+
+function updateTriangle(s){
+  var xMax=Math.max(s.N,s.C,s.P);
+  var yMax=Math.max(s.self,s.rel,s.fam);
+  var zMax=Math.max(s.past,s.pres,s.fut);
+  var px=axisX(xMax), py=axisY(yMax), pz=axisZ(zMax);
+
+  var poly=document.getElementById('triPoly');
+  if(poly) poly.setAttribute('points', px.x+','+px.y+' '+py.x+','+py.y+' '+pz.x+','+pz.y);
+
+  function setLine(id,x2,y2){ var l=document.getElementById(id); if(l){l.setAttribute('x2',x2);l.setAttribute('y2',y2);} }
+  setLine('rayX',px.x,px.y); setLine('rayY',py.x,py.y); setLine('rayZ',pz.x,pz.y);
+
+  function setCircle(id,cx,cy,r){ var c=document.getElementById(id); if(c){c.setAttribute('cx',cx);c.setAttribute('cy',cy);c.setAttribute('r',r);} }
+  setCircle('ptX',px.x,px.y,3+xMax*0.3);
+  setCircle('ptY',py.x,py.y,3+yMax*0.3);
+  setCircle('ptZ',pz.x,pz.y,3+zMax*0.3);
+
+  function setLbl(id,x,y,v){ var l=document.getElementById(id); if(l){l.setAttribute('x',x);l.setAttribute('y',y);l.textContent=v;} }
+  setLbl('lblX',px.x+8,px.y-4,xMax);
+  setLbl('lblY',py.x-20,py.y-6,yMax);
+  setLbl('lblZ',pz.x+8,pz.y+4,zMax);
+
+  var shape='';
+  if(zMax>xMax && zMax>yMax) shape='Вытянут вниз — давление из прошлого';
+  else if(yMax>xMax && yMax>zMax) shape='Развёрнут влево — давление из отношений / рода';
+  else if(xMax>yMax && xMax>zMax) shape='Смещён по X — давление на уровне системы';
+  else shape='Равномерный — давление распределено';
+  var desc=document.getElementById('triDesc');
+  if(desc){ desc.textContent=shape; desc.setAttribute('opacity','0.8'); }
+}
+
+function calcZones(s){
+  var names={N:'N(тело)',C:'C(паттерны)',P:'P(смысл)',self:'Я',rel:'Отношения',fam:'Род',past:'Прошлое',pres:'Настоящее',fut:'Будущее'};
+  var pr=[],rs=[];
+  Object.keys(names).forEach(function(k){ if(s[k]>=7)pr.push(names[k]+' ('+s[k]+')'); if(s[k]<=4)rs.push(names[k]+' ('+s[k]+')'); });
+  return {pressure:pr, resource:rs};
+}
+
+// ─── ЧТЕНИЕ КАРТЫ ───
+var PARAM_NAMES={N:'тело и факты (N)',C:'образы и паттерны (C)',P:'смысл и право быть (P)',self:'личная история (Я)',rel:'отношения',fam:'родовой след',past:'прошлое',pres:'настоящее',fut:'будущее'};
+var PARAM_SHORT={N:'телом/N',C:'паттернами/C',P:'смыслом/P',self:'личной историей',rel:'отношениями',fam:'родовым следом',past:'прошлым',pres:'настоящим',fut:'будущим'};
+
+function buildDirective(maxKey, minKey, s){
+  var hp=s.past>=7,hs=s.self>=7,hr=s.rel>=7,hf=s.fam>=7;
+  var hN=s.N>=7,hC=s.C>=7,hP=s.P>=7;
+  var lP=s.P<=3,lF=s.fut<=3;
+  if(hp&&hs&&lP) return 'Работать не с симптомом в личной истории, а с правом на смысл (P) — именно там лежит ключ';
+  if(hp&&hf)     return 'Работать не с прошлым напрямую, а с тем, что в роду ждёт признания';
+  if(hp&&hr)     return 'Работать не с прошлым, а с тем, кто в отношениях удерживает этот паттерн';
+  if(hN&&lP)     return 'Работать не с телесным симптомом, а с уровнем смысла — тело только транслирует сигнал P';
+  if(hC&&lF)     return 'Работать не с паттерном, а с образом будущего — там скрыт ресурс для перестройки сценария';
+  if(hP&&hs)     return 'Работать не с вопросом «зачем», а с тем, что мешает личной истории стать опорой';
+  if(hr&&s.fam<=3) return 'Работать не с конкретными отношениями, а с родовым ресурсом — он освобождает паттерн';
+  if(hf&&lF)     return 'Работать не с родовым следом напрямую, а через образ будущего — будущее разблокирует прошлое';
+  if(maxKey===minKey) return 'Выставьте оценки для получения архитектурной директивы';
+  return 'Работать не с «'+PARAM_SHORT[maxKey]+'», а с «'+PARAM_SHORT[minKey]+'» — именно здесь скрыт ресурс трансформации';
+}
+
+function buildInsight(s, pressureItems, resourceItems){
+  var all={N:s.N,C:s.C,P:s.P,self:s.self,rel:s.rel,fam:s.fam,past:s.past,pres:s.pres,fut:s.fut};
+  var maxKey='N',maxVal=0,minKey='fut',minVal=10;
+  Object.keys(all).forEach(function(k){ if(all[k]>maxVal){maxVal=all[k];maxKey=k;} if(all[k]<minVal){minVal=all[k];minKey=k;} });
+  var secondKey='N',secondVal=0;
+  Object.keys(all).forEach(function(k){ if(k!==maxKey&&all[k]>secondVal){secondVal=all[k];secondKey=k;} });
+
+  var symptom='';
+  try{ var v1=localStorage.getItem('tsl_upch_symptom'); if(v1){var d=JSON.parse(v1);symptom=d.symptom||'';} }catch(e){}
+  var sLabel = symptom ? '\u00ab'+symptom+'\u00bb' : 'симптом';
+
+  var lines=[];
+  lines.push('Ваш '+sLabel+' сосредоточен в зоне \u00ab'+PARAM_NAMES[maxKey]+'\u00bb с интенсивностью '+maxVal+'/10.');
+  if(secondVal>=5){
+    lines.push('Рядом — \u00ab'+PARAM_NAMES[secondKey]+'\u00bb ('+secondVal+'/10). Давление распределено между двумя зонами.');
+  } else {
+    lines.push('Остальные параметры значительно ниже — эпицентр выражен чётко.');
+  }
+  if(minVal<=4){
+    lines.push('Зона \u00ab'+PARAM_NAMES[minKey]+'\u00bb почти не задействована ('+minVal+'/10) — именно здесь может лежать скрытый ресурс.');
+  } else if(resourceItems.length>0){
+    lines.push('Наименьшее давление — в зоне \u00ab'+resourceItems[0].replace(/\s\(\d+\)/,'')+'\u00bb. Отсюда начинается реконструкция.');
+  }
+  lines.push('\u00ab'+buildDirective(maxKey,minKey,s)+'\u00bb');
+  lines.push('Треугольник — первый вопрос, который задала ваша система. Чтобы пройти от вопроса к архитектурному решению — нужна полная карта.');
+  return lines.join('\n\n');
+}
+
+// ─── ГЛАВНАЯ ФУНКЦИЯ ОБНОВЛЕНИЯ ───
+function update(){
+  var s=getSliders();
+  ['N','C','P','self','rel','fam','past','pres','fut'].forEach(function(id){ setVal(id,s[id]); });
+  updateTags('X',[s.N,s.C,s.P],['N','C','P']);
+  updateTags('Y',[s.self,s.rel,s.fam],['\u042f','Отн','Род']);
+  updateTags('Z',[s.past,s.pres,s.fut],['Прошлое','Настоящее','Будущее']);
+  updateTriangle(s);
+  var zones=calcZones(s);
+  var pEl=document.getElementById('pressure-text');
+  var rEl=document.getElementById('resource-text');
+  if(pEl) pEl.textContent=zones.pressure.length?zones.pressure.join(' \u00b7 '):'нет значений ≥ 7';
+  if(rEl) rEl.textContent=zones.resource.length?zones.resource.join(' \u00b7 '):'нет значений ≤ 4';
+  var ins=buildInsight(s,zones.pressure,zones.resource);
+  var iEl=document.getElementById('insight-text');
+  if(iEl) iEl.textContent=ins;
+  var rl=document.getElementById('readingLabel');
+  if(rl) rl.style.display=ins?'block':'none';
+}
+
+function saveAndNext(){
+  var s=getSliders();
+  var zones=calcZones(s);
+  var xMax=Math.max(s.N,s.C,s.P),yMax=Math.max(s.self,s.rel,s.fam),zMax=Math.max(s.past,s.pres,s.fut);
+  var dom=zMax>=xMax&&zMax>=yMax?'Z':yMax>=xMax&&yMax>=zMax?'Y':'X';
+  var data={sliders:s,pressure_zone:zones.pressure,resource_zone:zones.resource,dominant_axis:dom,saved_at:new Date().toISOString(),widget:2};
+  try{ localStorage.setItem('tsl_upch_3d',JSON.stringify(data)); }catch(e){}
+  var n=document.getElementById('savedNotice');
+  if(n) n.classList.add('show');
+  var target='TSL_UPCh_3_quad.html';
+  setTimeout(function(){
+    try{ window.location.href=target; }catch(e){}
+    setTimeout(function(){
+      var btn=document.querySelector('.btn-next');
+      if(btn && window.location.href.indexOf(target)===-1){
+        btn.innerHTML='📁 Откройте файл <strong>TSL_UPCh_3_quad.html</strong> из той же папки';
+        btn.style.whiteSpace='normal';btn.style.fontSize='13px';
+      }
+    },600);
+  },1000);
+}
+
+function toggleEdu(btn){
+  btn.classList.toggle('open');
+  var body=document.getElementById('eduBody');
+  if(body) body.classList.toggle('open');
+}
+
+function initSliderGradient(id){
+  var sl=document.getElementById('sl-'+id);
+  if(!sl) return;
+  var pct=(+sl.value/10*100)+'%';
+  var cls=sl.closest('.slider-item').className;
+  var c  =cls.indexOf('slider-X')>=0?'rgba(196,168,115,.55)':cls.indexOf('slider-Y')>=0?'rgba(212,112,90,.65)':'rgba(77,201,168,.65)';
+  var cL =cls.indexOf('slider-X')>=0?'rgba(196,168,115,.1)' :cls.indexOf('slider-Y')>=0?'rgba(212,112,90,.1)' :'rgba(77,201,168,.1)';
+  sl.style.background='linear-gradient(90deg,'+c+' '+pct+','+cL+' '+pct+')';
+}
+
+window.addEventListener('load', function(){
+  // Подтягиваем данные из Компаса (В1)
+  try{
+    var raw=localStorage.getItem('tsl_upch_symptom');
+    if(raw){
+      var d=JSON.parse(raw);
+      if(d.symptom){
+        var rs=document.getElementById('recapSymptom');
+        if(rs) rs.textContent=d.symptom;
+        var rc=document.getElementById('recapCard');
+        if(rc) rc.style.display='flex';
+        var lv=document.getElementById('recapLevel');
+        if(lv&&d.dominant){
+          var labels={n:'N \u2014 Необходимость',c:'C \u2014 Свобода',p:'P \u2014 Первоисточник'};
+          var classes={n:'recap-level-N',c:'recap-level-C',p:'recap-level-P'};
+          lv.textContent=labels[d.dominant]||'';
+          lv.className='recap-level '+(classes[d.dominant]||'');
+        }
+      }
+      if(d.sliders){
+        var map={N:'N',C:'C',P:'P',past:'past',present:'pres',future:'fut',self:'self',relations:'rel',family:'fam'};
+        Object.keys(map).forEach(function(k){
+          var el=document.getElementById('sl-'+map[k]);
+          if(el&&d.sliders[k]!==undefined) el.value=d.sliders[k];
+        });
+      }
+    }
+  }catch(e){}
+
+  ['N','C','P','self','rel','fam','past','pres','fut'].forEach(initSliderGradient);
+  update();
+});
+</script>
+</body>
+</html>
