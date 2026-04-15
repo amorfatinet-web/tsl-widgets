@@ -407,6 +407,11 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
 
   <!-- СОХРАНИТЬ И ПЕРЕЙТИ -->
   <div class="btns-section">
+    <button onclick="sendToBot()" style="display:block;width:100%;padding:16px 24px;background:rgba(13,122,107,.12);border:1px solid rgba(13,122,107,.4);border-radius:2px;font-size:14px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#4DC9A8;text-align:center;cursor:pointer;margin-bottom:10px">
+      → Отправить карту Марине
+      <span style="display:block;font-size:12px;opacity:.65;margin-top:5px;letter-spacing:0;text-transform:none;font-weight:400">Ваши данные придут вместе с заявкой на консультацию</span>
+    </button>
+    <a href="https://architecture-legacy.ru" target="_blank" style="display:block;padding:13px 24px;background:transparent;border:1px solid rgba(184,151,91,.18);border-radius:2px;font-size:13px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#B8975B;text-decoration:none;text-align:center;margin-bottom:10px">Сайт метода · architecture-legacy.ru</a>
     <div class="saved-notice" id="savedNotice">✓ Карта сохранена · Готово к Квадрилатерации</div>
     <button class="btn-next" onclick="saveAndNext()">→ Следующий шаг: Квадрилатерация</button>
     <a href="https://t.me/TSL_konsult_bot" target="_blank" class="btn-primary">Записаться на консультацию</a>
@@ -676,17 +681,14 @@ function saveAndNext(){
   try{ localStorage.setItem('tsl_upch_3d',JSON.stringify(data)); }catch(e){}
   var n=document.getElementById('savedNotice');
   if(n) n.classList.add('show');
-  var target='TSL_UPCh_3_quad.html';
+  // Следующие виджеты в разработке — предлагаем отправить результаты
   setTimeout(function(){
-    try{ window.location.href=target; }catch(e){}
-    setTimeout(function(){
-      var btn=document.querySelector('.btn-next');
-      if(btn && window.location.href.indexOf(target)===-1){
-        btn.innerHTML='📁 Откройте файл <strong>TSL_UPCh_3_quad.html</strong> из той же папки';
-        btn.style.whiteSpace='normal';btn.style.fontSize='13px';
-      }
-    },600);
-  },1000);
+    var btn=document.querySelector('.btn-next');
+    if(btn){
+      btn.textContent='→ Отправить карту Марине и записаться';
+      btn.onclick=function(){ sendToBot(); };
+    }
+  }, 800);
 }
 
 function toggleEdu(btn){
@@ -737,6 +739,38 @@ window.addEventListener('load', function(){
   ['N','C','P','self','rel','fam','past','pres','fut'].forEach(initSliderGradient);
   update();
 });
+
+  // ─── ОТПРАВКА РЕЗУЛЬТАТОВ В БОТ ───
+  window.sendToBot = function() {
+    try {
+      var payload = { widgets_done: [] };
+      // Данные компаса
+      var rc = localStorage.getItem('tsl_upch_symptom');
+      if (rc) {
+        var dc = JSON.parse(rc);
+        payload.symptom = dc.symptom || '';
+        payload.dominant = dc.dominant || '';
+        payload.widgets_done.push('compass');
+      }
+      // Данные 3D
+      var r3 = localStorage.getItem('tsl_upch_3d');
+      if (r3) {
+        var d3 = JSON.parse(r3);
+        payload.pressure_zone = d3.pressure_zone || [];
+        payload.resource_zone = d3.resource_zone || [];
+        payload.widgets_done.push('3d');
+      }
+      if (!payload.symptom && !payload.pressure_zone) {
+        window.open('https://t.me/TSL_konsult_bot', '_blank');
+        return;
+      }
+      var encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+      var botUrl = 'https://t.me/TSL_konsult_bot?start=report_' + encoded;
+      window.open(botUrl, '_blank');
+    } catch(e) {
+      window.open('https://t.me/TSL_konsult_bot', '_blank');
+    }
+  };
 </script>
 </body>
 </html>
